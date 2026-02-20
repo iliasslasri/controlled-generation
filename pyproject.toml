@@ -1,0 +1,28 @@
+[project]
+name = "llm-controlled-generation"
+version = "0.1.0"
+description = "LLM controlled generation: structured generation, self-correction, and meta-generation"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "scipy",
+    "regex",
+    "interegular",
+    "transformers",
+    "datasets",
+    "jellyfish",
+    "openai",
+]
+
+[tool.setuptools.packages.find]
+include = ["structured_generation*", "meta_generation*", "self_correction*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

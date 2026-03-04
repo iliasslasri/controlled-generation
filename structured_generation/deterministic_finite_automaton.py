@@ -67,8 +67,12 @@ def naive_mask(completion, vocabulary, pattern):
         0.0 for tokens whose tentative string partially matches,
         -math.inf for tokens that cannot lead to a valid match.
     """
-    # TODO: implement this function
-    raise NotImplementedError("naive_mask not implemented")
+    mask = np.full(len(vocabulary), -math.inf)
+    for token_id, token in enumerate(vocabulary):
+        tentative = completion + token
+        if re.fullmatch(pattern, tentative) or re.match(pattern, tentative):
+            mask[token_id] = 0.0  # valid token
+    return mask
 
 
 def build_dfa_index(vocabulary, pattern):
@@ -100,8 +104,23 @@ def build_dfa_index(vocabulary, pattern):
     states_token_states : defaultdict(dict)
         Mapping from DFA state to {token_id: landing_state}.
     """
-    # TODO: implement this function
-    raise NotImplementedError("build_dfa_index not implemented")
+    dfa = interegular.parse_pattern(pattern).to_fsm()
+    states_to_vocab = defaultdict(set)
+    states_token_states = defaultdict(dict)
+    for state in dfa.states:
+        for token_id, token in enumerate(vocabulary):
+            current_state = state
+            valid_token = True
+            for char in token:
+                symbol = dfa.alphabet.get(char, interegular.fsm.anything_else)
+                if symbol not in dfa.map[current_state]:
+                    valid_token = False
+                    break
+                current_state = dfa.map[current_state][symbol]
+            if valid_token:
+                states_to_vocab[state].add(token_id)
+                states_token_states[state][token_id] = current_state
+    return dfa, states_to_vocab, states_token_states
 
 
 def dfa_mask(state, states_to_vocab, vocab_size):
@@ -130,8 +149,11 @@ def dfa_mask(state, states_to_vocab, vocab_size):
     KeyError
         If `state` is not in `states_to_vocab`.
     """
-    # TODO: implement this function
-    raise NotImplementedError("dfa_mask not implemented")
+    mask = np.full(vocab_size, -math.inf)
+    if state in states_to_vocab:
+        valid_indices = states_to_vocab[state]
+        mask[list(valid_indices)] = 0.0
+    return mask
 
 
 def benchmark(vocab_sizes, n_steps=7, n_repeats=3):
